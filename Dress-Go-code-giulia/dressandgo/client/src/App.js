@@ -12,28 +12,54 @@ import MyUserData from './mycomponents/user_data_profile';
 import MyKnownSizes from './mycomponents/known_sizes';
 import AddKnownSizes from './mycomponents/add_size_button';
 import MyAvailabilityModal from './mycomponents/availabilityModal';
+import SizeGuide from './mycomponents/mySizeGuide';
 import { MySmallAdvertisement, MyBigAdvertisement } from './mycomponents/dress_card.js'
 
 import { getCategories, getUserInfos, getKnownSizes, getAds, getAdsImages, modifyUsInfos, insertKnownSize, removeKnownSize } from './API';
 
 
-
-
-
 function App() {
-  const [page, setPage] = useState("all");
+  const [page, setPage] = useState("");
   const [categories, setCategories] = useState([]);
   const [knownsizes, setKnownSizes] = useState([]);
   const [ads, setAds] = useState([]);
   const [adsImages, setAdsImages] = useState([]);
-
+  const [currentState, setCurrentState] = useState("home")
   const [currentCat, setCurrentCat] = useState("");
   const [currentDress, setCurrentDress] = useState("");
   const [modalShow, setModalShow] = useState(false);
+  const [search, setSearch] = useState("");
   const [user, setUser] = useState({});
 
 
-  const handleChangeCurrentCategorie = (cat) => setCurrentCat(cat);
+
+  const handleChangeForwardPage = (cat) => {
+    if (search) {
+      if (currentState == "home") {
+        setCurrentCat(cat)
+        setCurrentState("bigCat");
+      }
+      else if (currentState == "cat") {
+        setCurrentState("bigCat")
+      }
+    }
+
+    else {
+      if (currentState == "home") {
+        setCurrentCat(cat)
+        setCurrentState("cat")
+      }
+
+      else if (currentState == "cat") {
+        setCurrentState("bigCat")
+      }
+
+      else if (currentState == "bigCat") {
+
+      }
+    }
+
+  };
 
   useEffect(() => {
     async function getCat() {
@@ -46,6 +72,7 @@ function App() {
       setKnownSizes(fetchedSizes);
       setAds(fetchedAds);
       setUser(fetchedUser);
+      setPage(fetchedUser.gender)
       setAdsImages(fetchedAdsImages);
     }
     getCat();
@@ -66,7 +93,7 @@ function App() {
     removeKnownSize(id_ks).then((err) => { });
     // to avoid another call to the db
     const cont_ks = knownsizes.indexOf(knownsizes.find((ks) => ks.id_ks === id_ks));
-    
+
     setKnownSizes(knownsizes => {
       return knownsizes.filter(
         (ks, j) => cont_ks !== j);
@@ -87,9 +114,16 @@ function App() {
     })
   }
 
+
+
   return <Router>
-    <MyHeader page={page} setPage={setPage} currentCat={currentCat}
-      handleChangeCurrentCategorie={handleChangeCurrentCategorie} />
+    <MyHeader page={page} setPage={setPage}
+      currentCat={currentCat}
+      setCurrentCat={setCurrentCat}
+      currentState={currentState}
+      setCurrentState={setCurrentState}
+      search={search} setSearch={setSearch}
+    />
 
     <Routes >
 
@@ -98,14 +132,66 @@ function App() {
         <MyBigAdvertisement ads={ads} />
       </>} />
 
+      <Route path='/guide' element={<>
+        <SizeGuide />
+      </>} />
+
       <Route path='/previews' element={<>
-        <MyCategoryList categories={categories} ads={ads}
-          handleChangeCurrentCategorie={handleChangeCurrentCategorie} />
+        {search ? <Container id="dressContainer">
+          researched:
+          <MyDressList ads={ads.filter(ad => {
+            return ad.gender == page && (ad.title.includes(search) || ad.description.includes(search))
+          })}
+            handleChangeForwardPage={handleChangeForwardPage}>
+          </MyDressList>
+        </Container> : <MyCategoryList categories={categories.filter(c => {
+
+          if (c.gender == "unisex" || c.gender == page)
+            return c
+        })} ads={ads}
+          handleChangeForwardPage={handleChangeForwardPage}
+        />}
       </>} />
 
       <Route path="/dresses/:categorie" element={<>
-        <MyDressList ads={ads.filter(ad => ad.cat === currentCat)}>
-        </MyDressList>
+        {search ? <Container id="dressContainer"> resarched:
+          <MyDressList ads={ads.filter(ad => (ad.cat == currentCat) && (ad.title.includes(search) || ad.description.includes(search)))}
+            handleChangeForwardPage={handleChangeForwardPage}>
+          </MyDressList>
+        </Container>
+          :
+          <>
+            <Container id="dressContainer">
+              suggested for you:
+              <MyDressList ads={ads.filter(ad => {
+                if (ad.gender === page && ad.cat === currentCat) {
+                  for (const ks of knownsizes) {
+                    if (ad.gender == ks.gender && ad.brand == ks.brand && ad.cat == ks.cat && ad.size == ks.EUsize)
+                      return ad
+                  }
+                }
+              }
+              )}
+                handleChangeForwardPage={handleChangeForwardPage}>
+              </MyDressList>
+            </Container>
+
+
+            <Container id="dressContainer">
+              All sizes:
+              <MyDressList ads={ads.filter(ad => {
+                if (ad.cat === currentCat) {
+                  if (ad.gender == "unisex")
+                    return ad;
+                  else if (ad.gender == page)
+                    return ad;
+                }
+              })}
+                handleChangeForwardPage={handleChangeForwardPage}>
+              </MyDressList>
+            </Container>
+          </>
+        }
       </>} />
 
       <Route path="/MyAccount" element={<>
@@ -138,7 +224,9 @@ function App() {
 
       <Route path="/" element={<Navigate to="/previews" />} />
     </Routes >
-    <FixedBottomNavigation />
+    
+    <FixedBottomNavigation setCurrentState={setCurrentState} setPage={setPage}
+      setCurrentCat={setCurrentCat} setCurrentDress={setCurrentDress} />
   </Router>
 }
 

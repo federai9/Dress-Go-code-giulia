@@ -90,7 +90,10 @@ exports.listKnownSizes = (id_u) => {
           id_ks: t.ID_KS,
           brand: t.Brand,
           EUsize: t.EU_Size,
-          id_cat: t.ID_CAT
+          id_cat: t.ID_CAT,
+          //TO DO: INSERT NAME CATEGORY NOT ID
+          cat:"Jackets"
+          
         }));
         resolve(ksizes);
       }
@@ -121,7 +124,10 @@ exports.listAds = () => {
           price: t.Price,
           size: t.Size,
           gender: t.Gender,
-          brand: t.Brand
+          brand: t.Brand,
+          //ADD ARRAY OF ADDRESSES AND CATEGORY NAME NOT ID
+          cat:"Jackets",
+          addresses:[]
         }));
         resolve(ads);
       }
