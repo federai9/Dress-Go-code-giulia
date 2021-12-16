@@ -125,7 +125,7 @@ exports.listAds = () => {
           size: t.Size,
           gender: t.Gender,
           brand: t.Brand,
-          //ADD ARRAY OF ADDRESSES AND CATEGORY NAME NOT ID
+          //to do: ADD ARRAY OF ADDRESSES AND CATEGORY NAME NOT ID
           cat:"Jackets",
           addresses:[]
         }));

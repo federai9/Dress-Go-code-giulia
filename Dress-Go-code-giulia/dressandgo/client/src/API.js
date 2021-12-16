@@ -78,7 +78,7 @@ async function getAds() {
               id_cat: t.id_cat,
               title: t.title,
               description: t.description,
-              price: t.price,
+              price: parseFloat(t.price),
               size: t.size,
               gender: t.gender,
               brand: t.brand

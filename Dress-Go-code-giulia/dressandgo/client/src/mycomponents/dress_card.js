@@ -42,6 +42,7 @@ function MyBigAdvertisement(props) {
 
     const currentAd = props.ads.filter(ad => ad.id_a == idAd)[0];
 
+    console.log(currentAd);
 
     const onChange = (dates) => {
         const [start, end] = dates;
